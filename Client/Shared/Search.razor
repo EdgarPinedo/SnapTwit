@@ -1,0 +1,46 @@
+@inject HttpService<List<SuggestionResponse>> HttpService
+
+<div class="panel-wrapper" @onclick="() => { ParentMethod?.Invoke();}">
+    <div class="panel" @onclick:stopPropagation>
+        <div class="close">
+            <button class="button-nobg" @onclick="() => { ParentMethod?.Invoke();}">
+                <Icon iconSVG="@Icons.close" height="35" width="35"/>
+            </button>
+        </div>
+        <h2>Search</h2>
+        <EditForm Model="search" OnValidSubmit="Submit" class="search-input">
+            <InputText @bind-Value="search.query" required/>
+            <button type="submit" class="button-nobg">
+                <Icon iconSVG="@Icons.search" height="20" width="20"/>
+            </button>
+        </EditForm>
+        <hr>
+        @if (users is not null)
+        {
+            @foreach(var user in users)
+            {
+                <a href="/user/@user.Id" @onclick="() => { ParentMethod?.Invoke(); }">
+                    <img src="@(user.ProfilePicturePath ?? "./images/user-default.jpg")" height="40" width="40"/>
+                    <span>@user.Name</span>
+                </a>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Action? ParentMethod { get; set; }
+    private List<SuggestionResponse>? users;
+    private SearchQuery search = new();
+    class SearchQuery
+    {
+        public string query { get; set; } = string.Empty;
+    }
+
+    private async Task Submit()
+    {
+        users = null;
+        (users, var error) = await HttpService.GetAsync($"User/Search/{search.query}");
+    }
+}

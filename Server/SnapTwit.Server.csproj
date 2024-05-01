@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>679c666c-1bcf-4b2e-bd88-d9a1db7a9f03</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.15">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.2.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="7.2.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.4" />
+    <PackageReference Include="MySql.Data" Version="8.3.0" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="7.0.14+MySQL8.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Client\SnapTwit.Client.csproj" />
+    <ProjectReference Include="..\Shared\SnapTwit.Shared.csproj" />
+  </ItemGroup>
+    
+    <ItemGroup> 
+      <Content Include="Files\**"> 
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory> 
+      </Content> 
+    </ItemGroup>
+    
+    <Target Name="CreateFilesFolder" AfterTargets="AfterPublish">
+        <MakeDir Directories="$(PublishDir)Files" Condition="!Exists('$(PublishDir)Files')" />
+    </Target>
+
+</Project>

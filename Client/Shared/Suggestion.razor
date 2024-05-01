@@ -1,0 +1,38 @@
+@inject HttpClient http
+
+<div class="info">
+    <a href="/user/@user.Id">
+        <img src="@(user.ProfilePicturePath ?? "./images/user-default.jpg")" height="40" width="40"/>
+    </a>
+    <div>
+        <a href="/user/@user.Id">@user.Name</a>
+        <span>Suggestion for you</span>
+    </div>
+    <button class="button-bg" @onclick="GiveFollow">
+        @(following ? "Unfollow" : "Follow")
+    </button>
+</div>
+
+@code {
+    [Parameter]
+    public SuggestionResponse user { get; set; } = null!;
+
+    [Parameter]
+    public Action ParentMethod { get; set; } = null!;
+
+    private bool following = false;
+
+    private async Task GiveFollow()
+    {
+        following = !following;
+        if (following)
+        {
+            await http.PostAsync($"User/FollowUser/{user.Id}", null);
+        }
+        else 
+        {
+            await http.PostAsync($"User/UnfollowUser/{user.Id}", null);
+        }
+        ParentMethod.Invoke();
+    }
+}

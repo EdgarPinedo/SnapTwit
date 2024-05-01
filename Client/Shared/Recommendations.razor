@@ -1,0 +1,48 @@
+@inject HttpService<List<SuggestionResponse>> httpService
+
+<div class="container">
+    <span>Who to follow</span>
+    @if (users is not null)
+    {
+        @foreach (var user in users)
+        {
+            <Suggestion user="@user" ParentMethod="ParentMethod"/>
+        }
+        @if (users.Count == 0)
+        {
+            <div class="follow-all">
+                <span>Wow! you are already following all users</span>
+            </div>
+        }
+    }
+    else
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            <div class="skeleton-container">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-info">
+                    <div></div>
+                    <div></div>
+                </div>
+                <div class="skeleton-btn"></div>
+            </div>
+        }
+        <span class="span-error">@error</span>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Action ParentMethod { get; set; } = null!;
+    private List<SuggestionResponse>? users;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetRecommendedUsers();
+    }
+
+    private async Task GetRecommendedUsers() 
+        => (users, error) = await httpService.GetAsync("User/GetRandom");
+}

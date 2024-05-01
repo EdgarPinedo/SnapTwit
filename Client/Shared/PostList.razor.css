@@ -1,0 +1,115 @@
+.posts-container {
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.skeleton-container {
+    background-color: var(--background-two-color);
+    width: 100%;
+    border-radius: 10px;
+}
+
+.skeleton-top {
+    display: flex;
+    flex-direction: row;
+    padding: 1rem;
+    align-items: center;
+    gap: .8rem;
+}
+
+.skeleton-img {
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    background-color: var(--background-three-color);
+}
+
+.skeleton-info {
+    height: 17px;
+    width: 100px;
+    border-radius: 10px;
+    background-color: var(--background-three-color);
+}
+
+.skeleton-btn {
+    height: 30.8px;
+    width: 68.5px;
+    border-radius: 10px;
+    background-color: var(--background-three-color);
+    margin-right: 0;
+    margin-left: auto;
+}
+
+.skeleton-content {
+    border-radius: 10px;
+    background-color: var(--background-three-color);
+    height: 15px;
+    margin: 0.5rem 1rem;
+}
+
+.small {
+    width: 200px;
+}
+
+.image{
+    height: 300px;
+    width: calc(100% - 2rem);
+}
+
+.skeleton-actions {
+    padding: .5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border-top: 1px solid var(--background-three-color);
+    margin-top: 1rem;
+}
+
+.skeleton-actions div {
+    height: 26px;
+    width: 33%;
+    border-radius: 10px;
+    background-color: var(--background-three-color);
+}
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background-color: var(--background-two-color);
+    border-radius: 10px;
+    gap: 1rem;
+}
+
+.empty div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+}
+
+.empty span {
+    font-size: 1.8rem;
+    color: var(--secondary-color);
+}
+
+.empty ::deep a:hover {
+    color: var(--primary-color);
+}
+
+.button-bg {
+    border-radius: 10px;
+}
+
+.empty-profile{
+    justify-content: center;
+    align-items: end !important;
+}
+
+.empty-profile span {
+    margin-left: 5rem;
+}

@@ -1,0 +1,124 @@
+@inject IJSRuntime JS
+@inject HttpService<Post> httpService
+@inject HttpClient http
+
+<div class="container">
+    @if (isUploading)
+    {
+        <div class="loading">
+            <img src="./images/loading.svg"/>
+            <span><strong>Uploading...</strong></span>
+        </div>
+    }
+
+    <div class="@(isUploading ? "hide" : null)">
+        <div class="input-box">
+            <textarea name="textarea" @bind="content" placeholder="¿What's up?" 
+                oninput="this.style.height = ''; this.style.height = this.scrollHeight +'px'"/>
+            <div>
+                <button class="close-btn button-bg @image @video" @onclick="RemoveFile">X</button>
+                <img @ref="imageElem" class="@image"/>
+                <video @ref="videoElem" id="videofromuser" controls="controls" autoplay class="@video"/>
+            </div>
+        </div>
+        <span class="span-error">@error</span>
+        <div class="actions">
+            <label for="inputfile" class="upload-file" tabindex="0">
+                <Icon iconSVG="@Icons.image" height="22" width="22"/>
+                <InputFile OnChange="OnChange" id="inputfile" @ref="inputFile"
+                    accept="image/jpeg, image/jpg, image/png, image/webp, video/mp4"></InputFile>
+            </label>
+            <button @onclick="PublishPost" class="button-bg">Post</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Action? ParentMethod { get; set; }
+
+    [Parameter]
+    public string? id { get; set; }
+
+    private ElementReference videoElem, imageElem;
+    private InputFile? inputFile;
+    private IBrowserFile? file;
+    private bool isUploading = false;
+    private string? error, image, video;
+    private string content = string.Empty;
+    private const long maxSize = 5242880;
+    private static readonly string[] mediaTypes = {"image/jpeg", "image/jpg", "image/png", "image/webp", "video/mp4"};
+
+    private async Task OnChange(InputFileChangeEventArgs e)
+    {
+        image = error = video = null;
+
+        if (!isFileValid(e.File.ContentType, e.File.Size))
+            return;
+
+        file = e.File;
+        if (file.ContentType == "video/mp4")
+        {
+            await JS.InvokeVoidAsync("previewMediaFile", inputFile!.Element, videoElem);
+            video = "visible";
+            return;
+        }
+
+        await JS.InvokeVoidAsync("previewMediaFile", inputFile!.Element, imageElem);
+        image = "visible";
+    }
+
+    private bool isFileValid(string contentType, long size)
+    {
+        if (!mediaTypes.Contains(contentType))
+        {
+            error = "Only the following files are allowed: jpg, jpeg, png, webp, video/mp4.";
+            return false;
+        }
+
+        if (size > maxSize)
+        {
+            error = "The media file must not be larger than 5 MB";
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task RemoveFile()
+    {
+        if (video is not null)
+            await JS.InvokeVoidAsync("clearSrc", videoElem, true);
+
+        if (image is not null)
+            await JS.InvokeVoidAsync("clearSrc", imageElem, false);
+        
+        image = video = null;
+        file = null;
+    }
+
+    private async Task PublishPost()
+    {
+        error = null;
+        if (file is null && content.Length == 0)
+        {
+            error = "You should write something or upload media files";
+            return;
+        }
+
+        isUploading = true;
+        if (file is not null)
+        {
+            await httpService.UploadFile(file, maxSize, content, "Posts/CreatePostWithMedia");
+        }
+        else
+        {
+            await http.PostAsJsonAsync("Posts/CreatePost", content);
+        }
+
+        await RemoveFile();
+        content = string.Empty;
+        ParentMethod?.Invoke();
+        isUploading = false;
+    }
+}

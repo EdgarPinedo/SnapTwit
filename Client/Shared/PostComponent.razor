@@ -1,0 +1,108 @@
+@inject NavigationManager navigation
+@inject HttpClient http
+
+<div class="container">
+    <div class="user-info">
+        <a href="/user/@post.UserId">
+            <img src="@(post.ProfilePicturePath ?? "./images/user-default.jpg")" width="30" height="30"/>
+        </a>
+        <div class="name-date">
+            <a href="/user/@post.UserId"><strong>@post.UserName</strong></a>
+            <span>&nbsp;· @postDate</span>
+        </div>
+    </div>
+    @if (!string.IsNullOrEmpty(post.Content))
+    {
+        <p>@post.Content</p>
+    }
+    @if (post.FilePath is not null)
+    {
+        @if (post.FileType == (int)FileType.image)
+        {
+            <img src="@post.FilePath" class="media" 
+                @onclick="ViewPost" loading="lazy" />
+        }
+        else
+        {
+            <video src="@post.FilePath" controls="controls" class="media" />
+        }
+    }
+    <div class="interactions">
+        <button class="button-nobg @((liked) ? "liked" : null)" @onclick="GiveLike">
+            @if (liked)
+            {
+                <Icon iconSVG="@Icons.heartFill" height="16" width="16"/>
+            }
+            else
+            {
+                <Icon iconSVG="@Icons.heart" height="16" width="16"/>
+            }
+            <span>@post.TotalLikes</span>
+        </button>
+        <button class="button-nobg" @onclick="ViewPost">
+            <Icon iconSVG="@Icons.chat" height="16" width="16"/>
+            <span>@post.TotalComments</span>
+        </button>
+    </div>
+</div>
+
+@if (viewPost)
+{
+    <ViewPost post="post" ParentMethod="ViewPost"/>
+}
+
+@code {
+    [Parameter]
+    public PostItem post { get; set; } = new();
+
+    private string postDate = null!;
+    private bool liked = false;
+    private bool viewPost = false;
+
+    protected override void OnInitialized()
+    {
+        FormatDate();
+        liked = post.IsLiked;
+    }
+
+    private async Task GiveLike()
+    {
+        liked = !liked;
+        if(liked)
+        {
+            post.TotalLikes++;
+            await http.PostAsync($"Like/LikePost/{post.Id}", null);
+        }
+        else
+        {
+            post.TotalLikes--;
+            await http.PostAsync($"Like/DislikePost/{post.Id}", null);
+        }
+    }
+
+    private void FormatDate()
+    {
+        var date = post.Date;
+        var now = DateTime.UtcNow;
+        var timespan = now.Subtract(date).TotalMinutes;
+
+        if (timespan > 1440)
+        {
+            postDate = $"{date.ToString("MMM d")}";
+        }
+        else {
+            int hours = (int)timespan/60;
+
+            if (hours > 0)
+                postDate = $"{hours}h";
+            else
+                postDate = $"{(int)timespan}m";
+        }
+    }
+
+    public void ViewPost()
+    {
+        viewPost = !viewPost;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,60 @@
+@inject HttpService<MediaResponse> HttpService
+
+<div class="grid">
+    @if (media is null)
+    {
+        <div class="skeleton-container">
+            <Icon iconSVG="@Icons.image" height="80" width="80"/>
+        </div>
+        <div class="skeleton-container">
+            <Icon iconSVG="@Icons.image" height="80" width="80"/>
+        </div>
+    }
+    else
+    {
+        @foreach (var file in media.Files)
+        {
+            <div class="file-container">
+                @if (file.FileType == (int)FileType.video)
+                {
+                    <video src="@file.Url" controls></video>
+                }
+                else
+                {
+                    <img src="@file.Url" />
+                }
+            </div>
+        }
+    }
+</div>
+@if (page < totalPages && !isLoading)
+{
+    <button class="button-bg" @onclick="LoadMore">Load More</button>
+}
+
+@code {
+    [Parameter]
+    public string? id { get; set; }
+
+    private MediaResponse? media;
+    private string? error;
+    private int? totalPages;
+    private int page = 1;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        (media, error) = await HttpService.GetAsync($"Posts/GetMedia/{id}/{page}");
+        totalPages = media?.TotalPages;
+    }
+
+    private async Task LoadMore()
+    {
+        isLoading = true;
+        page++;
+        MediaResponse? moreMedia;
+        (moreMedia, error) = await HttpService.GetAsync($"Posts/GetMedia/{id}/{page}");
+        media!.Files.AddRange(moreMedia!.Files);
+        isLoading = false;
+    }
+}

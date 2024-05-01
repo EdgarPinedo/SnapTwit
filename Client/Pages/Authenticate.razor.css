@@ -1,0 +1,31 @@
+.authenticate-container {
+    width: min(100%, 500px);
+    border: 2px solid var(--background-three-color);
+    border-radius: 10px;
+    padding: 2rem;
+}
+
+h1 {
+    text-align: center;
+    margin: 2rem 5rem;
+    background: var(--active-color);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+h3 {
+    margin-bottom: 1.5rem;
+}
+
+.redirect {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: .5rem;
+    margin-top: 2rem;
+    font-size: .9rem;
+}
+
+.redirect a{
+    font-weight: bold;
+}

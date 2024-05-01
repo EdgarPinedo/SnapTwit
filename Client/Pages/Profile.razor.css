@@ -1,0 +1,175 @@
+.profile-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.profile-container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    width: min(100%, 1100px);
+}
+
+.header-wrapper {
+    width: 100%;
+    position: relative;
+}
+
+.header-wrapper label {
+    display: flex;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.header {
+    width: 100%;
+    height: 300px;
+    background: var(--background-two-color);
+    border-radius: 0 0 20px 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+.header label {
+    z-index: 1;
+}
+
+.header img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.header .button-bg {
+    padding: 0.5rem 0.7rem;
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+}
+
+.info-container {
+    width: 100%;
+    height: 100%;
+    padding: 0 2rem;
+    position: absolute;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(to right, rgb(28,27,30) 20%, rgb(28,27,30, 0.75), rgb(28,27,30, 0.4), rgb(28,27,30, 0));
+}
+
+.top-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.top-row .button-bg {
+    padding: 0.5rem 0.7rem;
+    position: absolute;
+    left: 100px;
+    bottom: 20px;
+}
+
+.profile-picture {
+    height: 130px;
+    width: 130px;
+    border-radius: 50%;
+}
+
+.row-name {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.7rem;
+}
+
+.name {
+    font-size: 1.3rem;
+    font-weight: bold;
+    display: block;
+    max-width: 210px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.joined-date {
+    color: var(--secondary-color);
+    margin-bottom: 0.7rem;
+    font-size: 0.9rem;
+}
+
+.follows-info {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.tabs {
+    width: 100%;
+    margin: 1rem 0 1rem;
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid var(--background-three-color);
+}
+
+.tabs ::deep a {
+    width: 50%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+.tabs ::deep .active{
+    border-bottom: 2px solid var(--light-purple-color);
+    color: var(--light-purple-color);
+}
+
+.post-list {
+    width: min(100%, 555px);
+}
+
+.error-upload {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    height: 100dvh;
+    width: 100dvw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(0,0,0, .6);
+    padding: 1rem;
+}
+
+.error-upload div {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-two-color);
+    padding: 1rem;
+    border-radius: 10px;
+}
+
+.error-upload button {
+    margin-top: 1rem;
+}
+
+.button-bg ::deep .loading {
+    object-fit: contain;
+    width: 20px;
+    height: 20px;
+}
+
+@media (width < 641px) {
+    .info-container {
+        padding: 0 1.1rem;
+    }
+}

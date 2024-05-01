@@ -1,0 +1,53 @@
+@page "/explore"
+@inject HttpService<PostResponse> httpService
+
+<PageTitle>Explore</PageTitle>
+@if (posts is null)
+{
+    <img src="./images/loading.svg" />
+}
+else
+{
+    <div class="container">
+        <div class="grid-container">
+            @foreach (var post in posts.Posts)
+            {
+                <div class="wrapper">
+                    <PostComponent post="post"/>
+                </div>
+            }
+        </div>
+        @if (posts.TotalPages > page)
+        {
+            <button class="button-bg" @onclick="LoadMore">Load More</button>
+        }
+        
+        @if (posts.Posts.Count == 0) 
+        {
+            <div class="message">
+                <div>
+                    <img height="130" src="./images/cactus.png" />
+                    <img height="50" src="./images/tumbleweed.png" />
+                </div>
+                <span>You are following everyone in this app, so there is nothing to show here</span>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    public PostResponse? posts;
+    private int page = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        (posts, var error) = await httpService.GetAsync($"Posts/Explore/{page}");
+    }
+
+    private async Task LoadMore()
+    {
+        page++;
+        (var response, var error) = await httpService.GetAsync($"Posts/Explore/{page}");
+        posts!.Posts.AddRange(response?.Posts!);
+    }
+}

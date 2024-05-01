@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="@width" height="@height" fill="currentColor" viewBox="0 0 16 16">
+    @((MarkupString)iconSVG)
+</svg>
+
+@code {
+    [Parameter]
+    public required string iconSVG { get; set; }
+
+    [Parameter]
+    public required int width { get; set; }
+
+    [Parameter]
+    public required int height { get; set; }
+}

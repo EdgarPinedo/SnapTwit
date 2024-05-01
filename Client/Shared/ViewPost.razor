@@ -1,0 +1,139 @@
+@inject HttpService<CommentResponse> commentsHttp
+@inject HttpService<CommentRequest> replyHttp
+@inject AuthenticationStateProvider auth
+
+<div class="transparent" @onclick="Close">
+<div class="container" @onclick:stopPropagation>
+    @if (post.FilePath is not null)
+    {
+        <div class="left-column">
+            <button @onclick="Close" class="close-btn">
+                <Icon iconSVG="@Icons.close" height="25" width="25" />
+            </button>
+            @if (post.FileType == (int)FileType.image)
+            {
+                <img src="@post.FilePath" class="media"/>
+            }
+            else
+            {
+                <video src="@post.FilePath" controls="controls" class="media"/>
+            }
+        </div>
+    }
+    <div class="right-column">
+        <div style="position: relative;">
+            @if (post.FilePath is null)
+            {
+                <button @onclick="Close" class="close-btn right">
+                    <Icon iconSVG="@Icons.close" height="25" width="25" />
+                </button>
+            }
+            <div class="post-info">
+                <div class="user-info">
+                    <a href="user/@post.UserId">
+                        <img src="@(post.ProfilePicturePath ?? "./images/user-default.jpg")" width="30" height="30"/>
+                    </a>
+                    <div class="name-date">
+                        <a href="user/@post.UserId">
+                            <strong>@post.UserName</strong>
+                        </a>
+                        <span>&nbsp;· @postDate</span>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(post.Content))
+                {
+                    <p class="post-content">@post.Content</p>
+                }
+            </div>
+            <div class="post-reply">
+                <textarea name="textarea" placeholder="Post your reply" @bind="content"
+                    oninput="this.style.height = ''; this.style.height = this.scrollHeight +'px'" />
+                <span class="span-error">@error</span>
+                <button @onclick="Reply" class="button-bg">Reply</button>
+            </div>
+        </div>
+        <div class="replies">
+            @if (comments is not null)
+            {
+                foreach (var comment in comments.Replies)
+                {
+                    <Reply reply="comment" />
+                }
+                if (page < comments.TotalPages)
+                {
+                    <button class="button-bg" @onclick="LoadMore">Load More</button>
+                }
+            }
+        </div>
+    </div>
+</div>
+</div>
+
+@code {
+    [Parameter]
+    public PostItem post { get; set; } = null!;
+    
+    [Parameter]
+    public Action? ParentMethod { get; set; }
+
+    private CommentResponse? comments;
+    private string? error, userId, content;
+    private string? postDate;
+    private int page = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        (comments, var _error) = await commentsHttp.GetAsync($"Comment/GetComments/{post.Id}/{page}");
+        (userId, var Name) = await (auth as AuthStateProvider)!.GetUserInfo();
+        FormatDate();
+    }
+
+    public async Task Reply()
+    {
+        CommentRequest comment = new()
+        {
+            Content = content!,
+            PostId = post!.Id,
+            Date = DateTime.UtcNow
+        };
+
+        error = await replyHttp.PostAsJsonAsync($"Comment/Reply", comment);
+        content = null;
+        comments = null;
+        StateHasChanged();
+        page = 1;
+        (comments, var _error) = await commentsHttp.GetAsync($"Comment/GetComments/{post.Id}/{page}");
+    }
+
+    private void FormatDate()
+    {
+        var date = post.Date;
+        var now = DateTime.UtcNow;
+        var timespan = now.Subtract(date).TotalMinutes;
+
+        if (timespan > 1440)
+        {
+            postDate = $"{date.ToString("MMM d")}";
+        }
+        else {
+            int hours = (int)timespan/60;
+
+            if (hours > 0)
+                postDate = $"{hours}h";
+            else
+                postDate = $"{(int)timespan}m";
+        }
+    }
+    private void Close()
+    {
+        ParentMethod?.Invoke();
+    }
+
+    private async Task LoadMore()
+    {
+        page++;
+        (var _comments, var _error) = await commentsHttp.GetAsync($"Comment/GetComments/{post.Id}/{page}");
+        comments!.Replies.AddRange(_comments!.Replies);
+        comments.TotalPages = _comments.TotalPages;
+    }
+}

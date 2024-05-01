@@ -1,0 +1,37 @@
+.info {
+    display: flex;
+    flex-direction: row;
+    gap: .5rem;
+    margin-top: 1.5rem;
+}
+
+.info img {
+    object-fit: cover;
+    border-radius: 50%;
+    background-color: var(--background-three-color);
+}
+
+.info div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.info div ::deep a {
+    font-weight: bold;
+    width: 106px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+.info div span {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+}
+
+.info button {
+    margin-left: 1.5rem;
+    min-width: 70px;
+}

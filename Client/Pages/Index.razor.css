@@ -1,0 +1,29 @@
+.home-container {
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    justify-content: center;
+    gap: 3rem;
+    height: 100%;
+    padding: 1.1rem 0;
+}
+
+.left-column {
+    width: min(100%, 555px);
+}
+
+@media (width < 1185px)
+{
+    .home-container {
+        gap: 0;
+        justify-content: space-between;
+    }
+}
+
+@media (width < 1160px)
+{
+    .home-container {
+        justify-content: center;
+        overflow-y: auto;
+    }
+}

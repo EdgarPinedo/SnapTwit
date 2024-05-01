@@ -1,0 +1,82 @@
+.container {
+    background-color: var(--background-two-color);
+    width: 100%;
+    border-radius: 10px;
+    break-inside: avoid;
+}
+
+.container p {
+    padding: .4rem 1rem .8rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    padding: 1rem;
+}
+
+.user-info img {
+    border-radius: 50%;
+    background-color: var(--background-three-color);
+}
+
+.name-date {
+    display: flex;
+    flex-direction: row;
+}
+
+.name-date a,
+.name-date span {
+    padding-top: .2rem;
+}
+
+.name-date span:last-of-type {
+    color: var(--secondary-color);
+}
+
+.media {
+    width: calc(100% - 2rem);
+    margin: 0 1rem;
+    border-radius: 10px;
+    max-height: 660px;
+    object-fit: cover;
+    background-color: black;
+    cursor: pointer;
+}
+
+.interactions {
+    padding: .5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--background-three-color);
+}
+
+.button-nobg {
+    font-size: 0.9rem;
+    width: 50%;
+    gap: .3rem;
+}
+
+.liked {
+    color: var(--light-purple-color);
+}
+
+hr {
+    border-color: var(--background-three-color);
+    margin: 0 1rem;
+}
+
+@media (width < 641px)
+{
+    .container {
+        border-radius: 0;
+    }
+
+    .media {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+    }
+}

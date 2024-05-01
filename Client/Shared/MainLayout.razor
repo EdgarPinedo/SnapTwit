@@ -1,0 +1,42 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider auth
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu ParentMethod="ShowPanel" />
+    </div>
+
+    @if (isPanelOpen)
+    {
+        <Search ParentMethod="ShowPanel" />
+    }
+
+    <main>
+        <div class="nav-mobile">
+            <h1>SnapTwit</h1>
+            <button class="button-nobg" aria-label="Logout" @onclick="Logout">
+                <Icon iconSVG="@Icons.logout" height="22" width="22" />
+            </button>
+        </div>
+        <article class="content">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private bool isPanelOpen = false;
+
+    private async Task Logout()
+    {
+        await (auth as AuthStateProvider)!.Logout();
+    }
+
+    private void ShowPanel()
+    {
+        isPanelOpen = !isPanelOpen;
+        StateHasChanged();
+    }
+
+    
+}

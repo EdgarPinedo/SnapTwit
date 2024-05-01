@@ -1,0 +1,173 @@
+@inject HttpClient http
+@inject HttpService<CommentResponse> httpService
+@inject HttpService<CommentRequest> replyHttp
+
+<div class="comment @(replyParent is not null ? "no-border" : null)">
+    <div class="grid">
+        <div>
+            <div class="user-info">
+                <a href="User/@reply.UserId">
+                    <img src="@(reply.ProfilePicturePath ?? "./images/user-default.jpg")" width="30" height="30"/>
+                    <span><strong>@reply.UserName</strong></span>
+                </a>
+                <span class="date">· @Date</span>
+            </div>
+            <p>@reply.Content</p>
+        </div>
+        <div class="interactions">
+            <button class="button-nobg @((liked) ? "liked" : null)" @onclick="GiveLike">
+                @if (liked)
+                {
+                    <Icon iconSVG="@Icons.heartFill" height="16" width="16"/>
+                }
+                else
+                {
+                    <Icon iconSVG="@Icons.heart" height="16" width="16"/>
+                }
+                <span>@reply.TotalLikes</span>
+            </button>
+            <button class="button-nobg" @onclick="GetReplies">
+                <Icon iconSVG="@Icons.chat" height="16" width="16"/>
+                @if (replyParent is null)
+                {
+                    <span>@reply.TotalReplies</span>
+                }
+            </button>
+        </div>
+    </div>
+    @if (isRepliesOpen)
+    {
+        <div class="reply">
+            <textarea name="textarea" placeholder="Post your reply" @bind="content"
+                oninput="this.style.height = ''; this.style.height = this.scrollHeight +'px'" />
+            <button @onclick="ReplyToComment" class="button-bg">Reply</button>
+        </div>
+        @if(replies is not null && replyParent is null)
+        {
+            <div class="replies">
+                @foreach (var rep in replies.Replies)
+                {
+                    <Reply reply="rep" replyParent="reply.Id" ParentMethod="ParentUpdateReplies"/>
+                }
+                @if (page < replies.TotalPages)
+                {
+                    <button class="button-bg" @onclick="LoadMore">Load More</button>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Comments reply { get; set; } = null!;
+    
+    [Parameter]
+    public int? replyParent { get; set; }
+
+    [Parameter]
+    public Action? ParentMethod { get; set; }
+
+    private CommentResponse? replies;
+    private bool liked = false;
+    private string? Date;
+    private bool isRepliesOpen = false;
+    private string? content;
+    private int page = 1;
+
+    public void GiveLike()
+    {
+        liked = !liked;
+        if(liked)
+        {
+            reply.TotalLikes++;
+            http.PostAsync($"Like/LikeComment/{reply.Id}", null);
+        }
+        else
+        {
+            reply.TotalLikes--;
+            http.PostAsync($"Like/DislikeComment/{reply.Id}", null);
+        }
+    }
+
+    public async Task GetReplies()
+    {
+        isRepliesOpen = !isRepliesOpen;
+        
+        if(isRepliesOpen && replies is null)
+            (replies, var error) = await httpService.GetAsync($"Comment/GetReplies/{reply.Id}/{page}");
+    }
+
+    public async Task ReplyToComment()
+    {
+        CommentRequest comment = new()
+        {
+            Content = content!,
+            PostId = reply.PostId,
+            CommentId = replyParent ?? reply.Id,
+            Date = DateTime.UtcNow
+        };
+
+        await replyHttp.PostAsJsonAsync($"Comment/Reply", comment);
+        content = null;
+        reply.TotalReplies++;
+        
+        if (replyParent is null)
+        {
+            await UpdateReplies();
+        }
+        else {
+            isRepliesOpen = false;
+            ParentMethod?.Invoke();
+        }
+    }
+
+    private async Task LoadMore()
+    {
+        page++;
+        (var _comments, var _error) = await httpService.GetAsync($"Comment/GetReplies/{reply.Id}/{page}");
+        replies!.Replies.AddRange(_comments!.Replies);
+        replies.TotalPages = _comments.TotalPages;
+    }
+
+    public async void ParentUpdateReplies()
+    {
+        await UpdateReplies();
+        reply.TotalReplies++;
+        StateHasChanged();
+    }
+
+    public async Task UpdateReplies()
+    {
+        replies = null;
+        StateHasChanged();
+        page = 1;
+        (replies, var _error) = await httpService.GetAsync($"Comment/GetReplies/{reply.Id}/{page}");
+    }
+    
+    protected override void OnInitialized()
+    {
+        FormatDate();
+        liked = reply.IsLiked;
+    }
+
+    private void FormatDate()
+    {
+        var date = reply.Date;
+        var now = DateTime.UtcNow;
+        var timespan = now.Subtract(date).TotalMinutes;
+
+        if (timespan > 1440)
+        {
+            Date = $"{date.ToString("MMM d")}";
+        }
+        else {
+            int hours = (int)timespan/60;
+
+            if (hours > 0)
+                Date = $"{hours}h";
+            else
+                Date = $"{(int)timespan}m";
+        }
+    }
+}

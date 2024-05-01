@@ -1,0 +1,50 @@
+﻿@inject AuthenticationStateProvider auth
+
+<div class="nav-scrollable">
+    <h1 class="navbar-brand">S<span>napTwit</span></h1>
+    <nav>
+        <div class="nav-item">
+            <NavLink href="" Match="NavLinkMatch.All">
+                <Icon iconSVG="@Icons.home" height="22" width="22"/>
+                <span>Home</span>
+            </NavLink>
+        </div>
+        <div class="nav-item">
+            <NavLink href="explore">
+                <Icon iconSVG="@Icons.compass" height="22" width="22"/>
+                <span>Explore</span>
+            </NavLink>
+        </div>
+        <div class="nav-item">
+            <button class="search" @onclick="() => {ParentMethod.Invoke();}">
+                <Icon iconSVG="@Icons.search" height="19" width="22"/>
+                <span>Search</span>
+            </button>
+        </div>
+        <div class="nav-item">
+            <NavLink href="projects">
+                <Icon iconSVG="@Icons.code" height="22" width="22"/>
+                <span>My Projects</span>
+            </NavLink>
+        </div>
+        <div class="nav-item logout">
+            <NavLink href="profile">
+                <Icon iconSVG="@Icons.person" height="24" width="24"/>
+                <span>Profile</span>
+            </NavLink>
+            <button class="button-nobg" aria-label="Logout" @onclick="Logout">
+                <Icon iconSVG="@Icons.logout" height="22" width="22"/>
+            </button>
+        </div>
+    </nav>
+</div>
+
+@code {
+    [Parameter]
+    public Action ParentMethod { get; set; } = null!;
+    
+    private async Task Logout()
+    {
+        await (auth as AuthStateProvider)!.Logout();
+    }
+}

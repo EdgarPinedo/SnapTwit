@@ -1,0 +1,18 @@
+@inherits LayoutComponentBase
+@inject NavigationManager navigation
+
+<div>
+    <main>
+        @if (navigation.Uri.Contains("post"))
+        {
+            style = "post-page";
+        }
+        <article class="layout-content @style">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private string? style;
+}

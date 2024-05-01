@@ -1,0 +1,122 @@
+@page "/authenticate/{route}"
+@inject HttpClient http
+@inject AuthenticationStateProvider authStateProvider
+@inject ILocalStorageService localStorage
+@inject NavigationManager navigation
+@layout EmptyLayout
+@attribute [AllowAnonymous]
+
+<div class="authenticate-container">
+    <h1>SnapTwit</h1>
+    @if (route == "login")
+    {
+        <h3>Sign in</h3>
+        <EditForm Model="login" OnValidSubmit="HandleSignIn">
+            <label for="email">Email</label>
+            <InputText id="email" @bind-Value="login!.Email" required/>
+            <label for="password">Password</label>
+            <InputText id="password" @bind-Value="login.Password" type="password" required/>
+            <span class="span-error">@error</span>
+            <button type="submit" class="button-bg">Sign in</button>
+        </EditForm>
+        <span class="redirect">
+            Don't have an account? 
+            <a href="authenticate/register" class="link">Sign up</a>
+        </span>
+    }
+    else
+    {
+        <h3>Sign up</h3>
+        <EditForm Model="register" OnValidSubmit="HandleSignUp">
+            <DataAnnotationsValidator />
+    
+            <label for="name">Name</label>
+            <InputText id="name" @bind-Value="register!.Name" required/>
+            <ValidationMessage For="@(() => register.Name)" class="span-error"/>
+
+            <label for="email">Email</label>
+            <InputText id="email" @bind-Value="register.Email" required/>
+            <ValidationMessage For="@(() => register.Email)" class="span-error"/>
+
+            <label for="phone">Phone number</label>
+            <InputText id="phone" @bind-Value="register.PhoneNumber" required/>
+            <ValidationMessage For="@(() => register.PhoneNumber)" class="span-error"/>
+
+            <label for="password">Password</label>
+            <InputText id="password" @bind-Value="register.Password" type="password" required/>
+            <ValidationMessage For="@(() => register.Password)" class="span-error"/>
+
+            <label for="confirmpassword">Confirm password</label>
+            <InputText id="confirmpassword" @bind-Value="register.ConfirmPassword" type="password" required/>
+            <ValidationMessage For="@(() => register.ConfirmPassword)" class="span-error"/>
+
+            <span class="span-error">@error</span>
+            <button type="submit" class="button-bg">Sign up</button>
+        </EditForm>
+        <span class="redirect">
+            Already have an account? 
+            <a href="authenticate/login" class="link">Sign in</a>
+        </span>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? route { get; set; }
+    private string? error;
+    private LoginRequest? login;
+    private RegisterRequest? register;
+
+    protected override void OnParametersSet()
+    {
+        if(route == "login")
+        {
+            login = new();
+            register = null;
+        }
+        else
+        {
+            login = null;
+            register = new();
+        }
+        error = null;
+    }
+
+    private async Task HandleSignIn()
+    {
+        var response = await http.PostAsJsonAsync("Authentication/Login", login);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            var token = loginResponse?.Token;
+            
+            await localStorage.SetItemAsync("token", token);
+            await authStateProvider.GetAuthenticationStateAsync();
+            navigation.NavigateTo("");
+        }
+        else
+        {
+            error = await response.Content.ReadAsStringAsync();
+        }
+    }
+
+    private async Task HandleSignUp()
+    {
+        var response = await http.PostAsJsonAsync("Authentication/Register", register);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            var token = loginResponse?.Token;
+            
+            await localStorage.SetItemAsync("token", token);
+            await authStateProvider.GetAuthenticationStateAsync();
+            navigation.NavigateTo("");
+        }
+        else
+        {
+            error = await response.Content.ReadAsStringAsync();
+        }
+    }
+}

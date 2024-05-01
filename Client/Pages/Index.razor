@@ -1,0 +1,31 @@
+﻿@page "/"
+@inject AuthenticationStateProvider auth
+
+<PageTitle>Home</PageTitle>
+
+<div class="home-container">
+    <div class="left-column">
+        @if (UserId is not null)
+        {
+            <Share id="@UserId"/>
+            <PostList @ref="postList" id="@UserId" homePage="true"/>
+        }
+    </div>
+    <Recommendations ParentMethod="RefreshPosts"/>
+</div>
+
+@code {
+    private PostList? postList;
+    private string? UserId;
+    private string? Name;
+
+    protected override async Task OnInitializedAsync()
+    {
+        (UserId, Name) = await (auth as AuthStateProvider)!.GetUserInfo();
+    }
+
+    public async void RefreshPosts()
+    {
+        await postList!.RefreshPosts();
+    }
+}

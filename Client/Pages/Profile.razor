@@ -1,0 +1,228 @@
+@page "/profile/{content?}"
+@page "/user/{id}/{content?}"
+@inject AuthenticationStateProvider auth
+@inject NavigationManager navigation
+@inject HttpService<ProfileResponse> httpService
+@inject HttpClient http
+
+<PageTitle>Profile</PageTitle>
+
+<div class="profile-page-container">
+    @if (profile is null)
+    {
+        if (error is not null)
+        {
+            <span>@error</span>
+        }
+    }
+    else
+    {
+        <div class="profile-container">
+            <div class="header-wrapper">
+                <div class="header">
+                    <img src="@(profile.CoverPicturePath ?? null)" alt="header">
+                    @if (isProfile)
+                    {
+                        @if (!uploadingCoverPic)
+                        {
+                            <label class="button-bg" for="inputfile2" tabindex="0">
+                                
+                                <Icon iconSVG="@Icons.camera" height="20" width="20" />
+                                <InputFile OnChange="UpdateCoverPicture" id="inputfile2"
+                                    accept="image/jpeg, image/jpg, image/png, image/webp"></InputFile>
+                            </label>
+                        }
+                        else 
+                        {
+                            <label class="button-bg">
+                                <img class="loading" src="./images/loading.svg" />
+                            </label>
+                        }
+                    }
+                </div>
+                <div class="info-container">
+                    <div class="top-row">
+                        <img src="@(profile.ProfilePicturePath ?? "./images/user-default.jpg")"
+                            class="profile-picture" alt="profile picture"/>
+                        @if (isProfile)
+                        {
+                            @if (!uploadingProfilePic)
+                            {
+                                <label class="button-bg" for="inputfile3" tabindex="0">
+                                    <Icon iconSVG="@Icons.camera" height="20" width="20" />
+                                    <InputFile OnChange="UpdateProfilePicture" id="inputfile3"
+                                        accept="image/jpeg, image/jpg, image/png, image/webp"></InputFile>
+                                </label>
+                            }
+                            else
+                            {
+                                <label class="button-bg">
+                                    <img class="loading" src="./images/loading.svg" />
+                                </label>
+                            }
+                        }
+                    </div>
+                    <div class="row-name">
+                        <span class="name">@profile.Name</span>
+                        @if (!isProfile)
+                        {
+                            <button class="button-bg" @onclick="Follow">
+                                @(profile.IsFollowed ? "UnFollow" : "Follow")
+                            </button>
+                        }
+                    </div>
+                    <div class="joined-date">
+                        <Icon iconSVG="@Icons.calendar" height="13" width="13"/>
+                        <span>Joined @profile.JoinedDate.ToString("MMM yyyy")</span>
+                    </div>
+                    <div class="follows-info">
+                        <span>@profile.TotalFollowing Following</span>
+                        <span>@profile.TotalFollowers Followers</span>
+                    </div>
+                </div>
+            </div>
+            <div class="tabs">
+                <NavLink href="@(isProfile ? "profile" : $"user/{id}")" Match="NavLinkMatch.All">
+                    <Icon iconSVG="@Icons.post" height="16" width="16"/>
+                    <span>Posts</span>
+                </NavLink>
+                <NavLink href="@(isProfile ? "profile/media" : $"user/{id}/media")">
+                    <Icon iconSVG="@Icons.images" height="16" width="16"/>
+                    <span>Media</span>
+                </NavLink>
+            </div>
+
+            @if (content == "media")
+            {
+                <Media id="@UserId"/>
+            }
+            else
+            {
+                if (UserId is not null)
+                {
+                    <div class="post-list">
+                        @if (isProfile)
+                        {
+                            <Share ParentMethod="RefreshPosts" id="@UserId"/>
+                        }
+                        <PostList @ref="postList" id="@UserId" homePage="false"/>
+                    </div>
+                }
+            }
+        </div>
+    }
+</div>
+
+@if (errorUpload is not null)
+{
+    <div class="error-upload" @onclick="() => {errorUpload = null;}">
+        <div>
+            <span class="span-error">@errorUpload</span>
+            <button class="button-bg">Ok</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? content { get; set; }
+
+    [Parameter]
+    public string? id { get; set; }
+
+    private ProfileResponse? profile;
+    private PostList? postList;
+    private string? UserId;
+    private bool isProfile = false;
+    private string? error, errorUpload;
+    private bool uploadingProfilePic = false;
+    private bool uploadingCoverPic = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        postList = null;
+        profile = null;
+        StateHasChanged();
+        if (navigation.Uri.Contains("user"))
+        {
+            UserId = id;
+            await GetProfile(UserId!);
+        }
+        else
+        {
+            isProfile = true;
+            (UserId, var Name) = await (auth as AuthStateProvider)!.GetUserInfo();
+            await GetProfile(UserId!);
+        }
+    }
+
+    private async Task GetProfile(string id)
+    {
+        (profile, error) = await httpService.GetAsync($"User/GetProfile/{id}");
+    }
+
+    public async void RefreshPosts()
+    {
+        await postList!.RefreshPosts();
+    }
+
+    private async Task UpdateProfilePicture(InputFileChangeEventArgs e)
+    {
+        errorUpload = null;
+        long maxSize = 5242880;
+
+        if (!isFileValid(e.File.ContentType, e.File.Size, maxSize))
+            return;
+
+        uploadingProfilePic = true;
+        var result = await httpService.UploadFile(e.File, maxSize, string.Empty, "User/UpdateProfilePicture");
+        profile!.ProfilePicturePath = result?.FilePath;
+        uploadingProfilePic = false;
+    }
+
+    private async Task UpdateCoverPicture(InputFileChangeEventArgs e)
+    {
+        errorUpload = null;
+        long maxSize = 5242880;
+
+        if (!isFileValid(e.File.ContentType, e.File.Size, maxSize))
+            return;
+
+        uploadingCoverPic = true;
+        var result = await httpService.UploadFile(e.File, maxSize, string.Empty, "User/UpdateCoverPicture");
+        profile!.CoverPicturePath = result?.FilePath;
+        uploadingCoverPic = false;
+    }
+
+    private async Task Follow()
+    {
+        profile!.IsFollowed = !profile.IsFollowed;
+        if (profile.IsFollowed)
+        {
+            await http.PostAsync($"User/FollowUser/{id}", null);
+        }
+        else 
+        {
+            await http.PostAsync($"User/UnfollowUser/{id}", null);
+        }
+    }
+
+    private bool isFileValid(string contentType, long size, long maxSize)
+    {
+        string[] mediaTypes = {"image/jpeg", "image/jpg", "image/png", "image/webp"};
+
+        if (!mediaTypes.Contains(contentType))
+        {
+            errorUpload = "Only the following files are allowed: jpg, jpeg, png, webp";
+            return false;
+        }
+
+        if (size > maxSize)
+        {
+            errorUpload = "The media file must not be larger than 5 MB";
+            return false;
+        }
+
+        return true;
+    }
+}
